@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>账号与数据删除 · 邻里地图</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif; color: #20392c; background: #f7f8f3; }
+      body { max-width: 640px; margin: 0 auto; padding: 28px 18px 60px; line-height: 1.65; }
+      .card { background: #fffefa; border: 1px solid #dbe2d6; border-radius: 16px; padding: 22px; }
+      h1 { margin: 0 0 8px; font-size: 1.55rem; }
+      h2 { font-size: 1.1rem; margin: 20px 0 8px; color: #245a40; }
+      form { display: grid; gap: 10px; margin-top: 12px; }
+      input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 9px 12px; border: 1px solid #c5d1c1; border-radius: 10px; font: inherit; }
+      button { min-height: 46px; border: 0; border-radius: 10px; background: #a83324; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+      button:disabled { opacity: 0.6; cursor: wait; }
+      .msg { padding: 10px 12px; border-radius: 10px; font-size: 0.95rem; }
+      .msg.err { background: #fdf0ed; color: #8d2a1e; border: 1px solid #e4b2a8; }
+      .msg.ok { background: #e6f4ea; color: #1d5736; border: 1px solid #b8ddc4; }
+      a { color: #245a40; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>邻里地图 · 永久删除账号与数据</h1>
+      <p>
+        根据用户数据自主权要求，您可以在此永久删除您在「邻里地图」（<code>com.linlimap.seniors</code>）注册的账号及全部关联云端数据。
+      </p>
+
+      <h2>删除范围说明</h2>
+      <ul>
+        <li><strong>立即永久删除</strong>：账号信息（用户名、称呼、手机号、密码哈希）、云端「我的家」「我的中心点」「常去地点」及上传的门面/地标照片、偏好设置。</li>
+        <li><strong>保留说明</strong>：系统安全审计日志中仅保留不含个人隐私与照片的脱敏操作记录用于防滥用审计；所有个人业务数据将在提交后<strong>立即清除且不可恢复</strong>。</li>
+      </ul>
+
+      <h2>自助提交永久注销</h2>
+      <form id="del-form">
+        <label>
+          用户名或手机号
+          <input id="username" required autocomplete="username" placeholder="请输入要注销的账号" />
+        </label>
+        <label>
+          登录密码
+          <input id="password" type="password" required autocomplete="current-password" placeholder="请输入当前登录密码确认本人操作" />
+        </label>
+        <button id="submit-btn" type="submit">确认永久删除账号及全部云端数据</button>
+        <div id="status"></div>
+      </form>
+
+      <p style="margin-top:20px">
+        <a href="/privacy.html">查看隐私政策</a> · <a href="/">返回邻里地图</a>
+      </p>
+    </main>
+    <script>
+      const form = document.getElementById("del-form");
+      const statusEl = document.getElementById("status");
+      const btn = document.getElementById("submit-btn");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        if (!confirm("确定永久删除账号“" + username + "”及其所有云端收藏与照片吗？此操作无法撤销！")) return;
+        btn.disabled = true;
+        statusEl.className = "";
+        statusEl.textContent = "正在提交删除请求…";
+        try {
+          const res = await fetch("/api/public/account-deletion", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "删除失败，请检查账号和密码。");
+          statusEl.className = "msg ok";
+          statusEl.textContent = data.message || "账号及全部关联数据已永久删除。";
+          form.reset();
+        } catch (err) {
+          statusEl.className = "msg err";
+          statusEl.textContent = err.message;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

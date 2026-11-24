@@ -20,6 +20,7 @@ import { CenterSearch, SavedCenters } from "./CenterPicker.jsx";
 import { types } from "./data.js";
 import { meters, distanceText, zoneName, areaFor } from "./geo.js";
 import { locate, smallPhoto } from "./services.js";
+import { isNativeApp } from "./platform/native.js";
 export function Modal({
   title,
   back,
@@ -364,7 +365,8 @@ export function ConfirmPoint({ p, purpose, onConfirm, center, navigating }) {
     </>
   );
 }
-export function Help({ onCredits }) {
+export function Help({ onCredits, onPrivacy }) {
+  const native = isNativeApp();
   return (
     <>
       <div className="help-item">
@@ -396,7 +398,7 @@ export function Help({ onCredits }) {
         <div>
           <h3>跟着指针走</h3>
           <p>
-            选步行或骑行，允许定位后开始。保持页面打开。定位不准时，页面会提示您等一等。过街请以信号灯和现场路况为准。
+            选步行或骑行，允许定位后开始。保持屏幕常亮。定位不准时，页面会提示您等一等。过街请以信号灯和现场路况为准。
           </p>
         </div>
       </div>
@@ -407,17 +409,53 @@ export function Help({ onCredits }) {
         <div>
           <h3>家在哪个方向？</h3>
           <p>
-            打开地图下方的九宫格，可以按东南西北认区域。家的位置和收藏只存在这个浏览器，清理网站数据会移除记录。
+            {native
+              ? "打开地图下方的九宫格，可以按东南西北认区域。家的位置和收藏保存在本机，登录账号后会自动云端同步。"
+              : "打开地图下方的九宫格，可以按东南西北认区域。家的位置和收藏默认保存在本机，登录账号后可跨设备云端同步。"}
           </p>
         </div>
       </div>
       <p className="fine">
         在线搜索会发送输入的地名。查附近地点会发送查询中心，规划路线会发送起点和终点。
       </p>
+      {onPrivacy && (
+        <button className="text-btn" onClick={onPrivacy}>
+          隐私政策与数据安全说明
+          <ChevronRight size={16} />
+        </button>
+      )}
       <button className="text-btn" onClick={onCredits}>
         查看地图与照片来源
         <ChevronRight size={16} />
       </button>
     </>
+  );
+}
+
+export function PrivacyPolicy() {
+  return (
+    <div className="credit-copy">
+      <h3>信息收集与用途</h3>
+      <p>
+        邻里地图支持免注册直接使用。仅在您主动注册/登录账号时，保存您的用户名、称呼、可选手机号与不可逆加密密码，用于同步“我的家”、常去地点与认路照片。
+      </p>
+      <h3>定位与相册权限</h3>
+      <p>
+        仅当您点击“使用当前位置”“一键回家”或开启步行/骑行导航时才在前台获取位置，结束导航立即停止监听，不进行任何后台静默追踪；相册权限仅在您主动为地点添加照片时使用。
+      </p>
+      <h3>广告、追踪与数据删除</h3>
+      <p>
+        本应用不含任何广告或跨应用追踪。您可随时在“账号中心 → 永久注销账号”中一键永久删除账号及所有云端数据，或通过网页端{" "}
+        <a href="/account-deletion.html" target="_blank" rel="noreferrer">
+          自助删除页面
+        </a>{" "}
+        提交删除。
+      </p>
+      <p>
+        <a href="/privacy.html" target="_blank" rel="noreferrer">
+          打开完整隐私政策网页版
+        </a>
+      </p>
+    </div>
   );
 }

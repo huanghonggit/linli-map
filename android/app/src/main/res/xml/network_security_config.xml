@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Allow HTTPS public servers as well as LAN self-hosted backend servers for local family/community deployment -->
-    <base-config cleartextTrafficPermitted="true">
+    <!-- Store Release policy: enforce HTTPS / TLS across all domains for Google Play compliance -->
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>

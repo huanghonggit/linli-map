@@ -1,0 +1,94 @@
+name: Store Release Builds (Google Play AAB & iOS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: "Production HTTPS backend URL baked into the store apps"
+        required: true
+        default: "https://map.example.com"
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  android-aab:
+    name: Build Google Play AAB (API 36)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      - name: Install dependencies and verify tests
+        run: |
+          npm ci
+          npm test
+
+      - name: Build Store Release web bundle and sync Android
+        env:
+          VITE_STORE_RELEASE: "true"
+          VITE_API_BASE_URL: ${{ inputs.api_base_url || vars.LINLI_PROD_API_URL || 'https://111.228.54.20' }}
+        run: |
+          npm run build
+          npx cap sync android
+          find android/app/src/main/assets/public/models -name "terrain.i16" -delete || true
+
+      - name: Decode Release Keystore (if configured in Secrets)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/linli-upload.jks
+
+      - name: Build Android App Bundle (.aab)
+        env:
+          LINLI_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && '../linli-upload.jks' || '' }}
+          LINLI_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          LINLI_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          LINLI_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linli-map-google-play-aab
+          path: android/app/build/outputs/bundle/release/*.aab
+
+  ios-build:
+    name: Build iOS App (Xcode)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies, build store bundle, sync iOS
+        env:
+          VITE_STORE_RELEASE: "true"
+          VITE_API_BASE_URL: ${{ inputs.api_base_url || vars.LINLI_PROD_API_URL || 'https://111.228.54.20' }}
+        run: |
+          npm ci
+          npm run build
+          npx cap sync ios
+
+      - name: Verify iOS Release Build (unsigned simulator/device check)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build

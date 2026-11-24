@@ -36,7 +36,7 @@ import {
 } from "./recognition/Recognition.jsx";
 import NeighborhoodMap from "./NeighborhoodMap.jsx";
 import RoutePanel from "./RoutePanel.jsx";
-import { Modal, Setup, ConfirmPoint, PlaceList, Help } from "./dialogs.jsx";
+import { Modal, Setup, ConfirmPoint, PlaceList, Help, PrivacyPolicy } from "./dialogs.jsx";
 import AuthModal from "./auth/AuthModal.jsx";
 import AdminDashboard from "./admin/AdminDashboard.jsx";
 import {
@@ -456,6 +456,13 @@ export default function App() {
     setModal(null);
     notify("已退出登录，本机数据仍保留。");
   }
+
+  function handleAccountDeleted() {
+    setUser(null);
+    setSyncState("idle");
+    setModal(null);
+    notify("您的账号及全部云端数据已永久删除。");
+  }
   const nav = useNavigation(cfg.center, cfg.voice, mapRef);
   const navigating = ["running", "locating", "routing"].includes(nav.phase);
   function editLocked() {
@@ -698,6 +705,7 @@ export default function App() {
     {
       auth: user ? "我的账号与云同步" : "登录 / 注册账号",
       admin: "管理员控制台",
+      privacy: "隐私政策与数据安全",
       saved: "我的常去地点",
       help: "使用帮助",
       credits: "数据与照片来源",
@@ -1057,11 +1065,16 @@ export default function App() {
               onAuthenticated={handleAuthenticated}
               onUserUpdated={(u) => setUser(u)}
               onLogout={handleLogout}
+              onAccountDeleted={handleAccountDeleted}
               onSyncNow={() => pushProfileToCloud()}
               onOpenAdmin={() => setModal({ kind: "admin" })}
+              onOpenPrivacy={() =>
+                setModal({ kind: "privacy", from: effectiveModal })
+              }
               onServerChanged={() => void refreshPublicData()}
             />
           )}
+          {modal && effectiveModal.kind === "privacy" && <PrivacyPolicy />}
           {effectiveModal.kind === "admin" && user?.role === "admin" && (
             <AdminDashboard
               currentUser={user}
@@ -1276,6 +1289,7 @@ export default function App() {
           {modal && effectiveModal.kind === "help" && (
             <Help
               onCredits={() => setModal({ kind: "credits", from: modal })}
+              onPrivacy={() => setModal({ kind: "privacy", from: modal })}
             />
           )}
           {modal && effectiveModal.kind === "credits" && <Credits />}

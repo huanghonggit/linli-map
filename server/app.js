@@ -288,6 +288,44 @@ export function createAppServer(overrides = {}) {
       });
     }
 
+    if (method === "POST" && path === "/api/public/account-deletion") {
+      if (!config.rateLimitDisabled && !limiter.check(`del:${ip}`)) {
+        return sendJson(res, 429, { error: "操作过于频繁，请稍后再试。" });
+      }
+      const body = await readJsonBody(req);
+      const identifier = String(body.username || body.identifier || "").trim();
+      const password = String(body.password || "");
+      if (!identifier || !password) {
+        return sendJson(res, 400, { error: "请输入要注销的账号和登录密码。" });
+      }
+      const target = store.findUserByLogin(identifier);
+      if (!target || !verifyPassword(password, target.password_hash)) {
+        return sendJson(res, 401, { error: "账号或密码不正确，无法完成注销。" });
+      }
+      if (
+        target.role === "admin" &&
+        target.status === "active" &&
+        store.countActiveAdmins() <= 1
+      ) {
+        return sendJson(res, 400, {
+          error: "系统至少需保留一位启用中的管理员，请先指定其他管理员后再注销。",
+        });
+      }
+      store.db.prepare("DELETE FROM users WHERE id = ?").run(target.id);
+      store.logAudit({
+        actorId: null,
+        actorName: target.username,
+        action: "auth.delete_account_web",
+        target: `user:${target.id}`,
+        detail: "self-service web deletion",
+        ip,
+      });
+      return sendJson(res, 200, {
+        ok: true,
+        message: "账号及关联的云端档案、常去地点和照片已永久删除。",
+      });
+    }
+
     // 2. Authentication endpoints
     if (method === "POST" && path === "/api/auth/register") {
       if (!config.rateLimitDisabled && !limiter.check(`reg:${ip}`)) {
@@ -428,6 +466,36 @@ export function createAppServer(overrides = {}) {
         .run(displayName, phone, now, authUser.id);
       const fresh = store.findUserById(authUser.id);
       return sendJson(res, 200, { user: store.sanitizeUser(fresh) });
+    }
+
+    if (method === "DELETE" && path === "/api/auth/me") {
+      const body = await readJsonBody(req);
+      const password = String(body.password || "");
+      if (!verifyPassword(password, authUser.password_hash)) {
+        return sendJson(res, 400, { error: "当前密码不正确，无法注销账号。" });
+      }
+      if (
+        authUser.role === "admin" &&
+        authUser.status === "active" &&
+        store.countActiveAdmins() <= 1
+      ) {
+        return sendJson(res, 400, {
+          error: "您是系统最后一位管理员，请先新增其他管理员后再注销本账号。",
+        });
+      }
+      store.db.prepare("DELETE FROM users WHERE id = ?").run(authUser.id);
+      store.logAudit({
+        actorId: null,
+        actorName: authUser.username,
+        action: "auth.delete_account",
+        target: `user:${authUser.id}`,
+        detail: "self-service in-app deletion",
+        ip,
+      });
+      return sendJson(res, 200, {
+        ok: true,
+        message: "您的账号及全部云端数据已永久删除。",
+      });
     }
 
     if (method === "POST" && path === "/api/auth/change-password") {

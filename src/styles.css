@@ -2841,6 +2841,20 @@ dialog.wide-dialog {
   cursor: pointer;
 }
 
+.danger-zone {
+  border-color: #e4bdb5;
+  background: #fff9f8;
+}
+.danger-zone summary {
+  color: #8d2a1e;
+}
+.inline-link-btn {
+  display: inline;
+  padding: 0;
+  color: var(--green);
+  font-weight: 700;
+  text-decoration: underline;
+}
 @media (max-width: 1180px) {
   .top-inner {
     gap: 10px;

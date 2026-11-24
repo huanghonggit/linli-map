@@ -1,7 +1,7 @@
 {
   "name": "linli-map",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -12,7 +12,10 @@
     "test": "node --no-warnings --test tests/*.test.mjs",
     "android:sync": "npm run build && npx cap sync android",
     "android:open": "npx cap open android",
-    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug"
+    "android:apk": "npm run android:sync && node -e \"const fs=require('fs'),p=require('path');const d='android/app/src/main/assets/public/models';if(fs.existsSync(d))for(const x of fs.readdirSync(d,{recursive:true}))if(x.endsWith('terrain.i16'))fs.rmSync(p.join(d,x),{force:true});\" && cd android && ./gradlew assembleDebug",
+    "android:aab": "npm run android:sync && node -e \"const fs=require('fs'),p=require('path');const d='android/app/src/main/assets/public/models';if(fs.existsSync(d))for(const x of fs.readdirSync(d,{recursive:true}))if(x.endsWith('terrain.i16'))fs.rmSync(p.join(d,x),{force:true});\" && cd android && ./gradlew bundleRelease",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -31,6 +34,7 @@
   "devDependencies": {
     "@capacitor/android": "^8.6.2",
     "@capacitor/cli": "^8.6.2",
+    "@capacitor/ios": "^8.6.2",
     "vite": "6.4.6"
   }
 }

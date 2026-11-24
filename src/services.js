@@ -65,12 +65,18 @@ export function fromGPS(pos) {
   };
 }
 export function gpsProblem(err) {
+  const native = isNativeApp();
   return (
     {
-      1: "定位权限已关闭。请在浏览器的网站设置里允许定位。",
+      1: native
+        ? "定位权限已关闭。请在手机系统设置里为邻里地图开启位置权限。"
+        : "定位权限已关闭。请在浏览器的网站设置里允许定位。",
       2: "手机暂时找不到位置，请到开阔处再试。",
       3: "定位超时，请到开阔处再试。",
-    }[err?.code] || "当前浏览器无法定位，请用 HTTPS 或本机 localhost 打开。"
+    }[err?.code] ||
+    (native
+      ? "暂时无法获取定位，请检查手机定位开关是否打开。"
+      : "当前浏览器无法定位，请用 HTTPS 或本机 localhost 打开。")
   );
 }
 export function locate({ forCenter = false, signal, onApproximate } = {}) {

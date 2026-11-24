@@ -10,17 +10,22 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
+  Trash2,
+  FileText,
 } from "lucide-react";
 import {
   authLogin,
   authRegister,
   authUpdateMe,
   authChangePassword,
+  authDeleteAccount,
   checkServerHealth,
   getServerUrl,
   setServerUrl,
 } from "../api/client.js";
 import { isNativeApp } from "../platform/native.js";
+
+const isStoreRelease = import.meta.env?.VITE_STORE_RELEASE === "true";
 
 function ServerConfigBox({ onServerChanged }) {
   const [url, setUrl] = useState(() => getServerUrl());
@@ -98,8 +103,10 @@ export default function AuthModal({
   onAuthenticated,
   onUserUpdated,
   onLogout,
+  onAccountDeleted,
   onSyncNow,
   onOpenAdmin,
+  onOpenPrivacy,
   onServerChanged,
   requireLogin = false,
 }) {
@@ -118,6 +125,30 @@ export default function AuthModal({
   const [editPhone, setEditPhone] = useState(user?.phone || "");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+
+  async function handleDeleteAccount(e) {
+    e.preventDefault();
+    if (
+      !window.confirm(
+        "确定永久注销此账号？您的云端“我的家”、常去地点与照片将被立即永久删除，且无法恢复。",
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setError("");
+    setInfo("");
+    try {
+      await authDeleteAccount(deletePassword);
+      setDeletePassword("");
+      onAccountDeleted?.();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -295,7 +326,7 @@ export default function AuthModal({
           </p>
         )}
 
-        <ServerConfigBox onServerChanged={onServerChanged} />
+        {!isStoreRelease && <ServerConfigBox onServerChanged={onServerChanged} />}
 
         <button
           type="button"
@@ -305,6 +336,44 @@ export default function AuthModal({
           <LogOut size={18} />
           退出当前账号
         </button>
+
+        <details className="server-box danger-zone">
+          <summary>
+            <Trash2 size={16} />
+            永久注销账号与云端数据
+          </summary>
+          <p className="fine">
+            注销后将立即永久删除您的账号、云端“我的家”、常去地点及已同步照片，操作不可撤销。
+          </p>
+          <form className="auth-form" onSubmit={handleDeleteAccount}>
+            <input
+              type="password"
+              required
+              placeholder="输入当前登录密码确认注销"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="danger-btn wide"
+              disabled={busy || !deletePassword}
+            >
+              <Trash2 size={16} />
+              确认永久注销账号
+            </button>
+          </form>
+        </details>
+
+        {onOpenPrivacy && (
+          <button
+            type="button"
+            className="text-btn"
+            onClick={onOpenPrivacy}
+          >
+            <FileText size={16} />
+            查看隐私政策与数据安全说明
+          </button>
+        )}
       </div>
     );
   }
@@ -420,9 +489,22 @@ export default function AuthModal({
               ? "立即登录"
               : "注册并自动登录"}
         </button>
+        {onOpenPrivacy && (
+          <p className="fine">
+            登录或注册即表示您已知晓并同意{" "}
+            <button
+              type="button"
+              className="inline-link-btn"
+              onClick={onOpenPrivacy}
+            >
+              《邻里地图隐私政策》
+            </button>
+            ，您可随时在账号设置内永久注销账号。
+          </p>
+        )}
       </form>
 
-      <ServerConfigBox onServerChanged={onServerChanged} />
+      {!isStoreRelease && <ServerConfigBox onServerChanged={onServerChanged} />}
     </div>
   );
 }

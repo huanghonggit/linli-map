@@ -184,6 +184,15 @@ export async function authLogout() {
   }
 }
 
+export async function authDeleteAccount(password) {
+  const data = await apiFetch("/api/auth/me", {
+    method: "DELETE",
+    body: { password },
+  });
+  await setToken("");
+  return data;
+}
+
 export const syncProfile = (profile) =>
   apiFetch("/api/profile", { method: "PUT", body: profile });
 

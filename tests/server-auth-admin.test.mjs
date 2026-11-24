@@ -167,6 +167,44 @@ test("full auth, cloud profile sync, RBAC admin management, landmarks, announcem
     assert.equal(logs.status, 200);
     assert.ok(logs.json.logs.some((l) => l.action === "admin.landmark.create"));
     assert.ok(logs.json.logs.some((l) => l.action === "admin.user.update"));
+
+    // 11. Self-service account deletion (in-app DELETE /api/auth/me + web POST /api/public/account-deletion)
+    // Last active admin cannot self-delete
+    const adminSelfDel = await req("/api/auth/me", {
+      method: "DELETE",
+      token: adminToken,
+      body: { password: "AdminTestPassword123" },
+    });
+    assert.equal(adminSelfDel.status, 400);
+
+    // Register two test users -> delete one in-app, delete one via public web endpoint
+    const u1 = await req("/api/auth/register", {
+      method: "POST",
+      body: { username: "del_app_user", password: "deletePass1" },
+    });
+    assert.equal(u1.status, 201);
+    const delAppRes = await req("/api/auth/me", {
+      method: "DELETE",
+      token: u1.json.token,
+      body: { password: "deletePass1" },
+    });
+    assert.equal(delAppRes.status, 200);
+    assert.equal((await req("/api/auth/me", { token: u1.json.token })).status, 401);
+
+    const u2 = await req("/api/auth/register", {
+      method: "POST",
+      body: { username: "del_web_user", password: "deletePass2" },
+    });
+    assert.equal(u2.status, 201);
+    const delWebRes = await req("/api/public/account-deletion", {
+      method: "POST",
+      body: { username: "del_web_user", password: "deletePass2" },
+    });
+    assert.equal(delWebRes.status, 200);
+    assert.equal(
+      (await req("/api/auth/login", { method: "POST", body: { username: "del_web_user", password: "deletePass2" } })).status,
+      401,
+    );
   } finally {
     await app.close();
   }
