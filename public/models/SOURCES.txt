@@ -1,0 +1,23 @@
+Neighbourhood models, revision 1 — data attribution
+
+Coordinates use WGS84. Each model contains the intersection of published building polygons and a WGS84 geodesic circle. The coverage radius and surrounding terrain half-width are recorded in each manifest.json. Pudong Ruiheyuan has three concentric models of 5,000 m, 8,000 m and 10,000 m centered on the projected centroid of OSM way 263343232 (Ruihe Road, Lane 168).
+https://www.openstreetmap.org/way/263343232
+ Roofs are flat, with vertically projected imagery. Unknown façades use neutral shading. Model coordinates use a locally scaled Web Mercator plane. Horizontal vertex storage increments are 0.25 m; these are storage increments, not positional accuracy.
+
+Imagery: Contains modified Copernicus Sentinel data (2026). Sentinel‑2 L2A true colour, 10 m source pixels. An area-specific scene and acquisition date, RGB asset, scene classification asset and clear-class percentage are listed in each manifest.json. Raster images are cropped, reprojected and WebP encoded. The separately streamed Esri World Imagery layer is attributed to Esri, Maxar, Earthstar Geographics and imagery contributors.
+https://dataspace.copernicus.eu/terms-and-conditions
+https://registry.opendata.aws/sentinel-2-l2a-cogs/
+
+Ground elevation: GEDTM30 v1.2, OpenLandMap / authors of the GEDTM30 dataset, CC BY 4.0. Bare-earth elevations use the EGM2008 vertical datum. Source spacing is one arc-second. Cropped and resampled onto a local 30 m grid. Heights are stored in decimetres.
+https://doi.org/10.5281/zenodo.18887460
+https://codeberg.org/openlandmap/GEDTM30
+https://creativecommons.org/licenses/by/4.0/
+
+Buildings: © OpenStreetMap contributors, ODbL 1.0. Regional Geofabrik extracts from 2026-11-18. Geometries are clipped, triangulated and split into tiles. Parent polygons are cut around mapped building parts. The downloadable derived footprint database footprints.geojson.gz in each area is available under ODbL 1.0. Heights are attributed per polygon using height_source: tag = OSM height; levels = OSM levels multiplied by 3 m, plus tagged roof height where available; raster = median positive CNBH height within the footprint, or a single sample for small buildings; outline = footprint only. OSM tags are not a survey accuracy certificate.
+https://www.openstreetmap.org/copyright
+https://download.geofabrik.de/asia/china.html
+https://opendatacommons.org/licenses/odbl/1-0/
+
+Estimated heights: CNBH-10m, Wu et al., building height for China in 2020, CC BY 4.0. Used under attribution for per-footprint height estimates. See source metadata for authors and methodology.
+https://doi.org/10.5281/zenodo.7923866
+https://creativecommons.org/licenses/by/4.0/

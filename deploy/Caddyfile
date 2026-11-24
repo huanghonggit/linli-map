@@ -1,0 +1,47 @@
+{
+	admin off
+	auto_https disable_redirects
+	default_sni {$LINLI_PUBLIC_IP}
+	https_port 8443
+	servers {
+		protocols h1 h2
+	}
+}
+
+(linli_static) {
+	handle /api/* {
+		reverse_proxy api:8787
+	}
+	handle {
+		root * /srv/linli
+		@entry path / /index.html /sw.js
+		header @entry Cache-Control "no-cache"
+		@bundles path /assets/*
+		header @bundles Cache-Control "public, max-age=31536000, immutable"
+		@models path /models/v1/*
+		header @models Cache-Control "public, max-age=86400"
+		@modelMeshes path /models/v1/*/*.glb.gz
+		header @modelMeshes Content-Encoding gzip
+		header @modelMeshes Content-Type model/gltf-binary
+		@modelTerrain path /models/v1/*/terrain.i16.gz
+		header @modelTerrain Content-Encoding gzip
+		header @modelTerrain Content-Type application/octet-stream
+		encode gzip
+		file_server
+	}
+}
+
+http://:8080 {
+	import linli_static
+}
+
+https://{$LINLI_PUBLIC_IP}:8443 {
+	tls {
+		issuer acme {
+			dir https://acme-v02.api.letsencrypt.org/directory
+			profile shortlived
+			disable_http_challenge
+		}
+	}
+	import linli_static
+}

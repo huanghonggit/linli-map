@@ -1,0 +1,18 @@
+{
+  "name": "邻里地图 · 实景三维长辈版",
+  "short_name": "邻里地图",
+  "description": "逼真实景三维卫星地图，大字语音步行导航，支持账号云端同步与认路口认店铺。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8f3",
+  "theme_color": "#286247",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

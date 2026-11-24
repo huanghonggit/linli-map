@@ -1,0 +1,31 @@
+services:
+  web:
+    image: ${LINLI_CADDY_IMAGE:-caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0}
+    entrypoint: ["caddy"]
+    command: ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+    environment:
+      LINLI_PUBLIC_IP: ${LINLI_PUBLIC_IP:?Set the public IPv4 address for the certificate}
+      GOMAXPROCS: "1"
+      GOMEMLIMIT: 64MiB
+    ports: !override
+      - "127.0.0.1:${LINLI_PORT:-18088}:8080"
+      - "0.0.0.0:443:8443"
+    volumes: !override
+      - type: bind
+        source: ../dist
+        target: /srv/linli
+        read_only: true
+        bind: { create_host_path: false }
+      - type: bind
+        source: ./Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+        bind: { create_host_path: false }
+      - type: bind
+        source: ${LINLI_TLS_STATE:?Set the absolute site-specific TLS state directory}/data
+        target: /data
+        bind: { create_host_path: false }
+      - type: bind
+        source: ${LINLI_TLS_STATE}/config
+        target: /config
+        bind: { create_host_path: false }

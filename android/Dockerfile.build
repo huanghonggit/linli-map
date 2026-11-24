@@ -1,0 +1,36 @@
+# Reproducible Android APK builder container (JDK 21 + Android SDK 36 + Node 22)
+# Usage from repository root:
+#   docker build -f android/Dockerfile.build -t linli-android-builder .
+#   docker run --rm -v "${PWD}/releases:/out" linli-android-builder
+FROM eclipse-temurin:21-jdk-jammy
+
+ARG ANDROID_SDK_ROOT=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT} \
+    ANDROID_HOME=${ANDROID_SDK_ROOT} \
+    PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl unzip git ca-certificates \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools \
+    && curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/tools.zip \
+    && unzip -q /tmp/tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools \
+    && mv ${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest \
+    && rm -f /tmp/tools.zip \
+    && yes | sdkmanager --licenses \
+    && sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+WORKDIR /workspace
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+
+RUN npm run android:sync \
+    && cd android \
+    && chmod +x gradlew \
+    && ./gradlew assembleDebug
+
+CMD ["sh", "-c", "cp /workspace/android/app/build/outputs/apk/debug/app-debug.apk /out/linli-map-android-debug.apk && ls -lh /out/linli-map-android-debug.apk"]

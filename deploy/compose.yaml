@@ -1,0 +1,80 @@
+name: linli-seniors-map
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      LINLI_API_HOST: "0.0.0.0"
+      LINLI_API_PORT: "8787"
+      LINLI_DB_PATH: "/app/data/linli.sqlite"
+      LINLI_JWT_SECRET: "${LINLI_JWT_SECRET:-}"
+      LINLI_ADMIN_USERNAME: "${LINLI_ADMIN_USERNAME:-admin}"
+      LINLI_ADMIN_PASSWORD: "${LINLI_ADMIN_PASSWORD:-Admin@123456}"
+    volumes:
+      - linli-data:/app/data
+      - type: bind
+        source: ../public/models
+        target: /app/public/models
+        read_only: true
+        bind: { create_host_path: false }
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cpus: 0.75
+    mem_limit: 256m
+    pids_limit: 64
+    networks: [site]
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "3" }
+
+  web:
+    image: nginx/nginx-unprivileged:stable-alpine@sha256:0c53a1f2890c3526bfd201440f0fd3970e5b78f80630f58284aad0d34b5ec7bd
+    user: "101:101"
+    entrypoint: ["nginx"]
+    command: ["-g", "daemon off;"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${LINLI_BIND_ADDR:-127.0.0.1}:${LINLI_PORT:-18088}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cpus: 0.50
+    mem_limit: 96m
+    pids_limit: 48
+    volumes:
+      - type: bind
+        source: ../dist
+        target: /srv/linli
+        read_only: true
+        bind: { create_host_path: false }
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+        bind: { create_host_path: false }
+    networks: [site]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/index.html"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options: { max-size: "3m", max-file: "2" }
+
+volumes:
+  linli-data:
+
+networks:
+  site:
+    driver: bridge

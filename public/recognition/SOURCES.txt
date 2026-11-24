@@ -1,0 +1,18 @@
+瑞和苑街面认路资料
+
+路口名称、方向和坐标来自 © OpenStreetMap contributors。数据快照为 2026-11-18，使用 ODbL 1.0。以实际共享节点识别道路交叉，简图北朝上。地点清单包含有名称的零售、药房及餐饮等点位。
+https://www.openstreetmap.org/copyright
+
+三张街面照片由 Mapillary 用户 pLyMiEwGpWDLryMacQzo 拍摄，拍摄日期均为 2019-07-31。按 CC BY-SA 4.0 转为 WebP，保留原构图。可在照片原页核对拍摄位置和时间。
+周东南路与瑞和路：https://www.mapillary.com/app/?pKey=1193684637752085
+周东南路与瑞安路：https://www.mapillary.com/app/?pKey=761926911164262
+周建路与瑞和路：https://www.mapillary.com/app/?pKey=164549105530999
+https://creativecommons.org/licenses/by-sa/4.0/
+
+门面照片通过高德地图地点记录的原图地址展示，拍摄日期未标注。点位、门牌和店招供现场核对。
+https://www.amap.com/place/B001570C2D
+https://www.amap.com/place/B0FFI7MOET
+https://www.amap.com/place/B0FFJGXA4G
+https://www.amap.com/place/B0LDDS4CT7
+
+百度街景由百度地图提供。三个路口使用从公开地图选定、核对过的街景点位。移动浏览器可从对应地点页进入客户端实景，配置具备全景权限的浏览器 AK 后可使用官方网页全景组件。

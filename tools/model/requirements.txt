@@ -1,0 +1,9 @@
+certifi
+mapbox-earcut==2.1.0
+numpy>=2,<3
+osmium==4.3.2
+Pillow>=12
+pyproj>=3.7
+rasterio>=1.4,<2
+requests>=2.32
+shapely>=2.1,<3

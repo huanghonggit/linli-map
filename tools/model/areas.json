@@ -1,0 +1,42 @@
+[
+  {
+    "id": "hangzhou",
+    "name": "杭州湖滨公园",
+    "lon": 120.1557,
+    "lat": 30.25186,
+    "extract": "zhejiang",
+    "heightTile": "X121Y31"
+  },
+  {
+    "id": "tianjin",
+    "name": "天津站",
+    "lon": 117.2036841,
+    "lat": 39.1357517,
+    "extract": "tianjin",
+    "heightTile": "X117Y39"
+  },
+  {
+    "id": "shanghai",
+    "name": "上海人民广场",
+    "lon": 121.4715447,
+    "lat": 31.2319264,
+    "extract": "shanghai",
+    "heightTile": "X121Y31"
+  },
+  {
+    "id": "ruiheyuan",
+    "name": "浦东瑞和苑",
+    "lon": 121.58448422,
+    "lat": 31.08790789,
+    "extract": "shanghai",
+    "heightTile": "X121Y31",
+    "radiiKm": [
+      5,
+      8,
+      10
+    ],
+    "osmBoundary": "way/263343232",
+    "address": "上海市浦东新区瑞和路168弄",
+    "sceneId": "S2B_51RUQ_20261031_0_L2A"
+  }
+]
